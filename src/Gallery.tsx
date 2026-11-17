@@ -237,6 +237,8 @@ export function Gallery({ opening, arrivalDelay }: { opening: boolean; arrivalDe
   const arrived = useRef(!opening)
   const reduced = useRef(matchMedia(reducedQuery).matches)
   const settledRef = useRef(!opening)
+  /** Discs already brought to the centre (by wrapped index). */
+  const seen = useRef(new Set([wrap(start)]))
 
   /* ---------------- where each disc wants to be (the arc) ---------------- */
 
@@ -530,8 +532,15 @@ export function Gallery({ opening, arrivalDelay }: { opening: boolean; arrivalDe
     let gesture = false
     function onWheel(event: WheelEvent) {
       if (opening || event.ctrlKey) return
-      event.preventDefault()
       const delta = (Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY) * (event.deltaMode === 1 ? 32 : 1)
+      // Once every disc has been seen, scrolling down leaves the carousel for the
+      // about section below; while the page is scrolled, the wheel just scrolls it.
+      const vertical = Math.abs(event.deltaY) >= Math.abs(event.deltaX)
+      if (vertical && (window.scrollY > 0 || (event.deltaY > 0 && seen.current.size >= count))) {
+        acc = 0
+        return
+      }
+      event.preventDefault()
       const now = performance.now()
       if (now - lastEvent > 130) {
         gesture = false
@@ -544,7 +553,9 @@ export function Gallery({ opening, arrivalDelay }: { opening: boolean; arrivalDe
       if ((!gesture || sustained) && Math.abs(acc) >= 6) {
         gesture = true
         lastStep = now
-        glideTo(target() + Math.sign(acc), 'wheel')
+        const goal = target() + Math.sign(acc)
+        glideTo(goal, 'wheel')
+        seen.current.add(wrap(goal))
         acc = 0
       }
     }
@@ -557,6 +568,10 @@ export function Gallery({ opening, arrivalDelay }: { opening: boolean; arrivalDe
       area?.removeEventListener('wheel', onWheel)
     }
   }, [opening])
+
+  useEffect(() => {
+    seen.current.add(wrap(base))
+  }, [base])
 
   useEffect(() => {
     if (!focusCenter.current) return

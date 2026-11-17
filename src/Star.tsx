@@ -2,7 +2,7 @@ import type { Ref } from 'react'
 
 /** Organic terra star. The outer element is positioned by CSS, the inner one reacts to motion. */
 export function Star({ shape, className = '', reactRef }: {
-  shape: 'a' | 'b'
+  shape: 'a' | 'b' | 'c'
   className?: string
   reactRef?: Ref<HTMLDivElement>
 }) {

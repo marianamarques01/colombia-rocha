@@ -237,6 +237,7 @@ function Home() {
   }, [opening])
 
   return (
+    <>
     <div className="home" data-opening={opening}>
       <a className="skip-link" href="#acervo">Pular para o acervo</a>
       <header className="home-bar">
@@ -259,6 +260,17 @@ function Home() {
         </div>
       )}
     </div>
+    {!opening && (
+      <div className="home-about">
+        <AboutContent id="sobre" />
+        <footer className="site-footer">
+          <span>{profile.name}</span>
+          <span>{profile.subtitle}</span>
+          {profile.email && <a href={`mailto:${profile.email}`}>{profile.email}</a>}
+        </footer>
+      </div>
+    )}
+    </>
   )
 }
 
@@ -444,16 +456,23 @@ function Highlight({ text, terms = [] }: { text: string; terms?: string[] }) {
   return <>{text.split(pattern).map((part, i) => (terms.includes(part) ? <em key={i}>{part}</em> : part))}</>
 }
 
-function AboutPage() {
+/** The about article: on its own page (/sobre/) and below the discs on the home. */
+function AboutContent({ id }: { id?: string }) {
   const portrait = profile.portrait
   const [lede, ...rest] = profile.bio
   return (
-    <InnerPage page="about">
-      <article className="about-page">
+      <article className="about-page" id={id}>
         <header className="about-hero">
+          <Star shape="c" className="about-star" />
           <p className="about-kicker"><span>Sobre</span>{profile.location && <span>{profile.location}</span>}</p>
           <h1 className="about-statement"><Highlight text={lede ?? profile.subtitle} terms={profile.highlights} /></h1>
           {rest.length > 0 && <div className="about-more">{rest.map((p) => <p key={p}>{p}</p>)}</div>}
+          <figure className="about-photo about-photo-camera">
+            <img src={sitePath('/acervo/sobre-camera.webp')} alt="Câmera exibindo um retrato de Colombia com iluminação vermelha e azul." loading="lazy" />
+          </figure>
+          <figure className="about-photo about-photo-portrait">
+            <img src={sitePath('/acervo/sobre-retrato.webp')} alt="Retrato de Colombia com cabelo escuro e maquiagem artística, iluminada pelo sol." loading="lazy" />
+          </figure>
           {portrait && (
             <figure className="portrait">
               <img src={sitePath(portrait.src)} alt={portrait.alt} />
@@ -508,6 +527,13 @@ function AboutPage() {
           </section>
         )}
       </article>
+  )
+}
+
+function AboutPage() {
+  return (
+    <InnerPage page="about">
+      <AboutContent />
     </InnerPage>
   )
 }
